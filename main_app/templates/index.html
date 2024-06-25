@@ -1,5 +1,39 @@
 {% extends 'base.html' %}
-{% block title %}Pagina Inicial{% endblock %}
+{% block title %}Tarefas{% endblock %}
 {% block content %}
-	<h1>Pagina Inicial</h1>
+    <h2 class="m-2">Lista de Tarefas</h2>
+    <div class="p-5">
+        <form class="d-flex gap-4 col-md-6" method="POST"> 
+            {% csrf_token %}  
+            <button type="submit" class="btn btn-success"><i class="fa fa-plus"></i></button> 
+            {% for field in form %}
+                <div class="form-group row">
+                    <label for="{{ field.id_for_label }}" class="col-sm-2 col-form-label">{{ field.label }}</label>
+                    <div class="col-sm-10">
+                        {{ field }}
+                    </div>
+                </div>
+            {% endfor %}  
+        </form>     
+        <table class="table mt-4"> 
+            <thead>
+                <tr>
+                    <th scope="col">Titulo</th> 
+                    <th scope="col">Status</th>
+                    <th scope="col">Deletar</th> 
+                </tr>
+            </thead>
+            {% for el in todo %}
+            <tbody>
+                <tr class="table align-middle">
+                    <th scope="row">{{el.titulo}}</th>  
+                    <th scope="row">{{el.status}}</th> 
+                    <th scope="row">
+                        <a class="btn" href="{% url 'delete' el.id %}"><i class="fa fa-trash link-danger"></i></a>
+                    </th> 
+                </tr>
+            </tbody>  
+            {% endfor %}
+        </table>
+    </div> 
 {% endblock %}
