@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Tarefas{% endblock %}
 {% block content %}
     <h2 class="m-2">Lista de Tarefas</h2>
@@ -23,17 +24,125 @@
                     <th scope="col">Deletar</th> 
                 </tr>
             </thead>
-            {% for el in todo %}
+            {% for el in tarefas %}
             <tbody>
-                <tr class="table align-middle">
-                    <th scope="row">{{el.titulo}}</th>  
-                    <th scope="row">{{el.status}}</th> 
+                <tr class="table align-middle" id="{{el.id}}">
                     <th scope="row">
-                        <a class="btn" href="{% url 'delete' el.id %}"><i class="fa fa-trash link-danger"></i></a>
-                    </th> 
+                        {% if el.status.id == 3 %}
+                            <div class="titulo" id="titulo{{el.id}}" data-title="{{el.id}}" style="text-decoration-line:line-through;">{{el.titulo}}</div>
+                        {% else %}
+                            <div class="titulo" id="titulo{{el.id}}" data-title="{{el.id}}">{{el.titulo}}</div>
+                        {% endif %}
+
+                        <form class="d-none d-flex" id="form-title{{el.id}}" method="GET" style="width:35rem;">
+                            <input class="form-control" type="text" id="inputText{{el.id}}" value="{{el.titulo}}">
+                            <button type="submit" class="btn" id="edit{{el.id}}"><i class="fa fa-edit link-warning"></i></button>
+                        </form>
+                    </th>  
+
+                    <th scope="row">
+                        <div class="SelDiv">
+                            <select class="form-select" name="status" id="{{el.id}}">
+                                {% for st in status_list %}
+                                    <option value="{{st.id}}" {% if el.status.id == st.id %} selected {% endif %}>
+                                    {{st.nome}}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </th>
+                     
+                    <th scope="row">
+                        <a class="btn" id="btn-delete" data-delete="{{el.id}}"><i class="fa fa-trash link-danger"></i></a>
+                    </th>
                 </tr>
             </tbody>  
             {% endfor %}
         </table>
     </div> 
+
+{% endblock %}
+
+{% block scripts %}
+
+    <script type="text/javascript">
+
+        // Atualiza Titulo da Lista
+        $("div.titulo").click(function () {
+            var data_id = $(this).attr("data-title");
+                
+            $("form#form-title" + data_id).removeClass('d-none')
+            $("div#titulo" + data_id).addClass('d-none')
+                
+                $('button#edit' + data_id).on("click", function (e) {
+                e.preventDefault();
+                            
+                titulo = $('input#inputText'+ data_id).val();
+                    
+                $.ajax({
+                    type: 'GET',
+                    url: '{% url "update-item" %}',
+                    data: {'data_id': data_id,'titulo': titulo,},
+                    datatype: "json",
+                    success: function (data) {
+                        if (data.status == "update-item") {
+                            $("form#form-title" + data_id).addClass('d-none');
+                            $("div#titulo" + data_id).removeClass('d-none'); 
+                            $("#titulo" + data_id).html(data.titulo); 
+                        }  
+                    }
+                }); 
+            });
+        });
+
+        // Muda Status do Item da Lista
+        $("div.SelDiv select").on('change', function () {
+
+            var data_id = this.id;
+            var status_id = $(this).find('option').filter(':selected').val();
+
+            $.ajax({
+                type: 'GET',
+                url: '{% url "update-status" %}',
+                data: {
+                    'data_id': data_id,
+                    'status_id': status_id,
+                },
+                datatype: "json",
+
+                success: function (data) {
+                    if (status_id == 3) {
+                        $("div#titulo" + data_id).css("text-decoration-line", "line-through"); 
+                    } else {
+                        $("div#titulo" + data_id).css("text-decoration-line", "");
+                    }
+                }
+            });
+        });
+
+        // Deleta um Item da Lista
+        $("a#btn-delete").on("click", function (e) {
+        e.preventDefault();
+
+        var tarefa_id = $(this).attr("data-delete");
+            
+            $.ajax({
+                type: 'GET',
+                url: '{% url "delete" %}',
+                data: { 'tarefa_id': tarefa_id },
+                datatype: "json",
+                success: function (data) {
+                    if (data.status == "delete") {
+                        $("tbody tr#" + tarefa_id).fadeOut("slow", function () {
+                            $("tbody tr#" + tarefa_id).remove();
+                        });
+                    } else {
+                        alert("Erro ao deletar tarefa!");
+                    }
+                }
+            });
+        })
+
+    </script>
+
 {% endblock %}
