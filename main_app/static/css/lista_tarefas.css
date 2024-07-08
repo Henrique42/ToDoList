@@ -1,0 +1,14 @@
+.main-title{
+    text-align: center;
+}
+
+#nova-tarefa{
+    background-color: rgb(255, 255, 255, 0.08);
+    border-radius: 5px;
+    padding: 5px;
+}
+
+body{
+    background-color: #212529;
+    color: white;
+}

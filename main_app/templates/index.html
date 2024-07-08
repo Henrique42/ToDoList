@@ -1,48 +1,73 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}Tarefas{% endblock %}
+
 {% block content %}
-    <h2 class="m-2">Lista de Tarefas</h2>
+    <!-- Título da página -->
+    <div class="main-title">
+        <h2 class="m-4">Lista de Tarefas</h2>
+    </div>
+
     <div class="p-5">
-        <form class="d-flex gap-4 col-md-6" method="POST"> 
-            {% csrf_token %}  
-            <button type="submit" class="btn btn-success"><i class="fa fa-plus"></i></button> 
-            {% for field in form %}
-                <div class="form-group row">
-                    <label for="{{ field.id_for_label }}" class="col-sm-2 col-form-label">{{ field.label }}</label>
-                    <div class="col-sm-10">
-                        {{ field }}
+        <!-- Formulário para adicionar nova tarefa -->
+        <div class="p-3" id="nova-tarefa">
+            <h4 class="mb-3">Nova Tarefa:</h4>
+            <form class="d-flex gap-4 col-md-6" method="POST">
+                {% csrf_token %}
+                <!-- Loop pelos campos do formulário -->
+                {% for field in form %}
+                    <div class="form-group row">
+                        <!-- Label do campo -->
+                        <label for="{{ field.id_for_label }}" class="col-sm-2 col-form-label">{{ field.label }}</label>
+                        <div class="col-sm-10">
+                            <!-- Campo do formulário -->
+                            {{ field }}
+                        </div>
                     </div>
-                </div>
-            {% endfor %}  
-        </form>     
-        <table class="table mt-4"> 
+                {% endfor %}
+                <!-- Botão para adicionar nova tarefa -->
+                <button type="submit" class="btn btn-success"><i class="fa fa-plus"></i></button>
+            </form>
+        </div>
+
+        <hr>
+
+        <!-- Tabela de listagem das tarefas -->
+        <table class="table mt-4" id="lista_tarefas">
             <thead>
-                <tr>
-                    <th scope="col">Titulo</th> 
+                <tr class="table-dark">
+                    <th scope="col">Titulo</th>
                     <th scope="col">Status</th>
-                    <th scope="col">Deletar</th> 
+                    <th scope="col">Término</th>
+                    <th scope="col">Deletar</th>
                 </tr>
             </thead>
+            <!-- Loop pelas tarefas -->
             {% for el in tarefas %}
             <tbody>
-                <tr class="table align-middle" id="{{el.id}}">
+                <tr class="table-dark align-middle" id="{{el.id}}">
                     <th scope="row">
+                        <!-- Div para o título da tarefa, com controle de edição -->
                         {% if el.status.id == 3 %}
                             <div class="titulo" id="titulo{{el.id}}" data-title="{{el.id}}" style="text-decoration-line:line-through;">{{el.titulo}}</div>
                         {% else %}
                             <div class="titulo" id="titulo{{el.id}}" data-title="{{el.id}}">{{el.titulo}}</div>
                         {% endif %}
 
-                        <form class="d-none d-flex" id="form-title{{el.id}}" method="GET" style="width:35rem;">
+                        <!-- Formulário de edição do título da tarefa -->
+                        <form class="d-none d-flex" id="form-title{{el.id}}" method="GET" style="width:30rem;">
                             <input class="form-control" type="text" id="inputText{{el.id}}" value="{{el.titulo}}">
+                            <!-- Botão para salvar a edição do título -->
                             <button type="submit" class="btn" id="edit{{el.id}}"><i class="fa fa-edit link-warning"></i></button>
                         </form>
-                    </th>  
+                    </th>
 
                     <th scope="row">
+                        <!-- Select para o status da tarefa -->
                         <div class="SelDiv">
                             <select class="form-select" name="status" id="{{el.id}}">
+                                <!-- Loop pelos status disponíveis -->
                                 {% for st in status_list %}
                                     <option value="{{st.id}}" {% if el.status.id == st.id %} selected {% endif %}>
                                     {{st.nome}}
@@ -51,15 +76,20 @@
                             </select>
                         </div>
                     </th>
-                     
+
                     <th scope="row">
+                        <div class="data_termino" id="data{{el.id}}" data-title="{{el.id}}">{{el.data_termino}}</div>
+                    </th>
+                    
+                    <th scope="row">
+                        <!-- Botão para deletar a tarefa -->
                         <a class="btn" id="btn-delete" data-delete="{{el.id}}"><i class="fa fa-trash link-danger"></i></a>
                     </th>
                 </tr>
-            </tbody>  
+            </tbody>
             {% endfor %}
         </table>
-    </div> 
+    </div>
 
 {% endblock %}
 
@@ -67,24 +97,29 @@
 
     <script type="text/javascript">
 
-        // Atualiza Titulo da Lista
+        // Atualiza título da tarefa ao clicar
         $("div.titulo").click(function () {
             var data_id = $(this).attr("data-title");
                 
+            // Mostra o formulário de edição e oculta o título
             $("form#form-title" + data_id).removeClass('d-none')
             $("div#titulo" + data_id).addClass('d-none')
                 
-                $('button#edit' + data_id).on("click", function (e) {
+            // Evento ao clicar no botão de edição
+            $('button#edit' + data_id).on("click", function (e) {
                 e.preventDefault();
                             
+                // Obtém o novo título da entrada de texto
                 titulo = $('input#inputText'+ data_id).val();
                     
+                // Requisição AJAX para atualizar o item
                 $.ajax({
                     type: 'GET',
                     url: '{% url "update-item" %}',
                     data: {'data_id': data_id,'titulo': titulo,},
                     datatype: "json",
                     success: function (data) {
+                        // Se a atualização for bem-sucedida, oculta o formulário de edição e mostra o título atualizado
                         if (data.status == "update-item") {
                             $("form#form-title" + data_id).addClass('d-none');
                             $("div#titulo" + data_id).removeClass('d-none'); 
@@ -95,12 +130,13 @@
             });
         });
 
-        // Muda Status do Item da Lista
+        // Muda status do item da lista
         $("div.SelDiv select").on('change', function () {
 
             var data_id = this.id;
             var status_id = $(this).find('option').filter(':selected').val();
 
+            // Requisição AJAX para atualizar o status do item
             $.ajax({
                 type: 'GET',
                 url: '{% url "update-status" %}',
@@ -111,6 +147,7 @@
                 datatype: "json",
 
                 success: function (data) {
+                    // Se o status for concluído (id=3), aplica estilo de texto riscado
                     if (status_id == 3) {
                         $("div#titulo" + data_id).css("text-decoration-line", "line-through"); 
                     } else {
@@ -120,28 +157,31 @@
             });
         });
 
-        // Deleta um Item da Lista
+        // Deleta um item da lista
         $("a#btn-delete").on("click", function (e) {
-        e.preventDefault();
+            e.preventDefault();
 
-        var tarefa_id = $(this).attr("data-delete");
+            var tarefa_id = $(this).attr("data-delete");
             
+            // Requisição AJAX para deletar o item
             $.ajax({
                 type: 'GET',
                 url: '{% url "delete" %}',
                 data: { 'tarefa_id': tarefa_id },
                 datatype: "json",
                 success: function (data) {
+                    // Se a exclusão for bem-sucedida, remove a linha da tabela
                     if (data.status == "delete") {
                         $("tbody tr#" + tarefa_id).fadeOut("slow", function () {
                             $("tbody tr#" + tarefa_id).remove();
                         });
                     } else {
+                        // Alerta em caso de erro ao deletar
                         alert("Erro ao deletar tarefa!");
                     }
                 }
             });
-        })
+        });
 
     </script>
 
