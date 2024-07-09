@@ -9,4 +9,4 @@
 
 - **Resultado:**
 
-![Tela Inicial](image.png)
+![Tela inicial](image.png)

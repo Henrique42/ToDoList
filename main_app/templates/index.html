@@ -13,22 +13,27 @@
         <!-- Formulário para adicionar nova tarefa -->
         <div class="p-3" id="nova-tarefa">
             <h4 class="mb-3">Nova Tarefa:</h4>
-            <form class="d-flex gap-4 col-md-6" method="POST">
+            <form method="POST" class="row align-items-center">
                 {% csrf_token %}
                 <!-- Loop pelos campos do formulário -->
                 {% for field in form %}
-                    <div class="form-group row">
-                        <!-- Label do campo -->
-                        <label for="{{ field.id_for_label }}" class="col-sm-2 col-form-label">{{ field.label }}</label>
-                        <div class="col-sm-10">
+                    <div class="col-sm-3">
+                        <div class="row gy-2 gx-3">
+                            <!-- Label do campo -->
+                            <label for="{{ field.id_for_label }}" class="col-sm-4 col-form-label">{{ field.label }}</label>
                             <!-- Campo do formulário -->
-                            {{ field }}
+                            <div class="col-sm-8">
+                                {{ field }}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
                 <!-- Botão para adicionar nova tarefa -->
-                <button type="submit" class="btn btn-success"><i class="fa fa-plus"></i></button>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-success">Salvar</button>
+                </div>
             </form>
+            
         </div>
 
         <hr>

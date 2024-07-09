@@ -1,13 +1,17 @@
-from django import forms 
+from django import forms
 from .models import Tarefa
 
+class DateInput(forms.DateInput):
+    input_type = "date"
+
+    def __init__(self, **kwargs):
+        kwargs["format"] = "%d-%m-%Y"
+        super().__init__(**kwargs)
+
 class TarefaForm(forms.ModelForm):
+    titulo = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), label="Título:")
+    data_termino = forms.DateField(widget=DateInput(attrs={'class': 'form-control'}), label="Término:")
+
     class Meta:
         model = Tarefa
-        fields = ('titulo',)
-        exclude = ('status',)
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)  
-        for field_name, field in self.fields.items():   
-                field.widget.attrs['class'] = 'form-control'
+        fields = ['titulo', 'data_termino']
