@@ -9,4 +9,4 @@
 
 - **Resultado:**
 
-![Tela inicial](image.png)
+![Screenshot da tela inicial](tela_inicial.png)

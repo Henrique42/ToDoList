@@ -28,13 +28,19 @@ def delete_item(request):
 
 def update_item(request):
     data_id = request.GET.get('data_id')  # Obtém o ID da tarefa a ser atualizada
-    titulo = request.GET.get('titulo')  # Obtém o novo título para a tarefa
-
+    alvo = request.GET.get('alvo') # Obtém o que será atualizado do item
     tarefa = get_object_or_404(Tarefa, id=data_id)  # Obtém a tarefa pelo ID
-    tarefa.titulo = titulo  # Atualiza o título da tarefa
-    tarefa.save()  # Salva a tarefa atualizada no banco de dados
 
-    data = {'status': 'update-item', 'titulo': titulo}
+    if alvo == 'titulo':
+        titulo = request.GET.get('titulo')  # Obtém o novo título para a tarefa
+        tarefa.titulo = titulo  # Atualiza o título da tarefa
+        tarefa.save()  # Salva a tarefa atualizada no banco de dados
+    elif alvo == 'data':
+        data = request.GET.get('data_termino')  # Obtém a nova data de término da tarefa
+        tarefa.data_termino = data  # Atualiza o título da tarefa
+        tarefa.save()  # Salva a tarefa atualizada no banco de dados
+
+    data = {'status': 'update-item', 'titulo': tarefa.titulo, 'data_termino': tarefa.data_termino}
     return JsonResponse(data)
 
 def update_status(request):

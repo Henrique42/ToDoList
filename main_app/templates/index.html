@@ -53,7 +53,7 @@
             <tbody>
                 <tr class="table-dark align-middle" id="{{el.id}}">
                     <th scope="row">
-                        <!-- Div para o título da tarefa, com controle de edição -->
+                        <!-- Div para o título da tarefa, com diferença para o caso de tarefa finalizada -->
                         {% if el.status.id == 3 %}
                             <div class="titulo" id="titulo{{el.id}}" data-title="{{el.id}}" style="text-decoration-line:line-through;">{{el.titulo}}</div>
                         {% else %}
@@ -82,8 +82,17 @@
                         </div>
                     </th>
 
+                    <!-- Campo da data de término -->
                     <th scope="row">
-                        <div class="data_termino" id="data{{el.id}}" data-title="{{el.id}}">{{el.data_termino}}</div>
+                        <div class="data_termino" id="data{{el.id}}" data-termino="{{el.id}}">{{el.data_termino}}</div>
+                    
+                        <!-- Formulário de edição da data de término -->
+                        <form class="d-none d-flex" id="form-date{{el.id}}" method="GET" style="width:15rem;">
+                            <input class="form-control" type="date" id="inputDate{{el.id}}" value="{{el.data_termino}}">
+                            <!-- Botão para salvar a edição do título -->
+                            <button type="submit" class="btn" id="edit_data{{el.id}}"><i class="fa fa-edit link-warning"></i></button>
+                        </form>
+                    
                     </th>
                     
                     <th scope="row">
@@ -121,7 +130,7 @@
                 $.ajax({
                     type: 'GET',
                     url: '{% url "update-item" %}',
-                    data: {'data_id': data_id,'titulo': titulo,},
+                    data: {'data_id': data_id,'titulo': titulo, 'alvo': 'titulo',},
                     datatype: "json",
                     success: function (data) {
                         // Se a atualização for bem-sucedida, oculta o formulário de edição e mostra o título atualizado
@@ -134,6 +143,53 @@
                 }); 
             });
         });
+
+
+        // Atualiza data da tarefa ao clicar
+        $("div.data_termino").click(function () {
+            var data_id = $(this).attr("data-termino");
+                
+            // Mostra o formulário de edição e oculta a data
+            $("form#form-date" + data_id).removeClass('d-none')
+            $("div#data" + data_id).addClass('d-none')
+                
+            // Evento ao clicar no botão de edição
+            $('button#edit_data' + data_id).on("click", function (e) {
+                e.preventDefault();
+                            
+                // Obtém a nova data da entrada de texto
+                data_termino = $('input#inputDate'+ data_id).val();
+                    
+                // Requisição AJAX para atualizar o item
+                $.ajax({
+                    type: 'GET',
+                    url: '{% url "update-item" %}',
+                    data: {'data_id': data_id,'data_termino': data_termino, 'alvo': 'data',},
+                    datatype: "json",
+                    success: function (data) {
+                        // Se a atualização for bem-sucedida, oculta o formulário de edição e mostra a data atualizada
+                        if (data.status == "update-item") {
+                            $("form#form-date" + data_id).addClass('d-none');
+                            $("div#data" + data_id).removeClass('d-none');
+                            
+                            var originalDate = new Date(data_termino);
+                            originalDate.setMinutes(originalDate.getMinutes() + originalDate.getTimezoneOffset());
+
+                            // Formatando a data
+                            var formattedDate = originalDate.toLocaleDateString('pt-BR', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: '2-digit'
+                            });
+
+                            // Atualizando o html com a nova data
+                            $("#data" + data_id).html(formattedDate);
+                        }  
+                    }
+                }); 
+            });
+        });
+
 
         // Muda status do item da lista
         $("div.SelDiv select").on('change', function () {
@@ -161,6 +217,7 @@
                 }
             });
         });
+
 
         // Deleta um item da lista
         $("a#btn-delete").on("click", function (e) {
